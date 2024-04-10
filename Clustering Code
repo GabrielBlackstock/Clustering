@@ -1,0 +1,51 @@
+import pandas as pd  # Import the pandas library for data manipulation and analysis
+import numpy as np  # Import NumPy and alias it as np for numerical operations
+from sklearn.preprocessing import StandardScaler  # Import the StandardScaler for data standardisation
+from sklearn.cluster import KMeans, AgglomerativeClustering  # Import clustering algorithms
+
+# Load the data from the specified CSV file
+file_path = '/Applications/Quant /CarSharing_preprocessed.csv'
+data = pd.read_csv(file_path)
+
+# Extract the temperature data for clustering
+temp_data = data[['temp']]
+
+# Standardise the temperature data to have a mean of 0 and a standard deviation of 1
+scaler = StandardScaler()
+temp_scaled = scaler.fit_transform(temp_data)
+
+# Define a list of k values to explore different cluster sizes
+k_values = [2, 3, 4, 12]
+
+# Initialise dictionaries to store the results from the clustering algorithms
+results_kmeans = {}
+results_agglo = {}
+
+# Perform clustering for each value of k and store the results
+for k in k_values:
+    # Apply KMeans clustering
+    kmeans = KMeans(n_clusters=k, n_init=43, random_state=0)
+    kmeans_labels = kmeans.fit_predict(temp_scaled)
+    results_kmeans[k] = kmeans_labels
+
+    # Apply Agglomerative Clustering
+    agglomerative = AgglomerativeClustering(n_clusters=k)
+    agglomerative_labels = agglomerative.fit_predict(temp_scaled)
+    results_agglo[k] = agglomerative_labels
+
+# Define a function to evaluate the uniformity of clusters
+def evaluate_uniformity(labels):
+    unique, counts = np.unique(labels, return_counts=True)
+    distribution = dict(zip(unique, counts))
+    return distribution
+
+# Evaluate and display the clustering results for each method and value of k
+print("KMeans Clustering Distribution:")
+for k, labels in results_kmeans.items():
+    distribution = evaluate_uniformity(labels)
+    print(f"k={k}: {distribution}")
+
+print("\nAgglomerative Clustering Distribution:")
+for k, labels in results_agglo.items():
+    distribution = evaluate_uniformity(labels)
+    print(f"k={k}: {distribution}")
